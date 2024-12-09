@@ -25,11 +25,36 @@ class Program
         return await rootCommand.InvokeAsync(args);
     }
 
+    private static void copyAlwaysXml(XElement root, string fileName)
+    {
+        root.Add(
+            new XText("  "),
+            new XElement(
+                "ItemGroup",
+                new XText("\n    "),
+                new XElement(
+                    "None",
+                    new XAttribute("Update", fileName),
+                    new XText("\n      "),
+                    new XElement("CopyToOutputDirectory", "Always"),
+                    new XText("\n    ")
+                ),
+                new XText("\n  ")
+            ),
+            new XText("\n\n")
+        );
+    }
+
     static void CopyAlways(FileInfo file)
     {
-        DirectoryInfo parent = System.IO.Directory.GetParent(file.FullName);
-        Console.WriteLine(file.FullName);
-        XElement root = XElement.Load("../../../csproj.csproj");
-        Console.WriteLine(root);
+        string cwd = Directory.GetCurrentDirectory();
+        string projectName = Path.GetFileName(cwd);
+        string csprojName = projectName + ".csproj";
+        XElement root = XElement.Load(csprojName, LoadOptions.PreserveWhitespace);
+        copyAlwaysXml(root, file.Name);
+        // copyAlwaysXml(root, "sigma.mp4");
+        // Console.WriteLine(root);
+        Console.WriteLine($"Added \"{file.Name}\" to \"{csprojName}\"");
+        root.Save(csprojName);
     }
 }
